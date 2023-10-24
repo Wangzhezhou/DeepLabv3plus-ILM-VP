@@ -250,7 +250,7 @@ def main():
 
     total_samples = len(train_dst)
     iterations_per_epoch = total_samples // opts.batch_size
-    total_itrs_for_200_epochs = iterations_per_epoch * 200
+    total_itrs_for_75_epochs = iterations_per_epoch * 75
 
     # Set up model (all models are 'constructed at network.modeling)
     model = network.modeling.__dict__[opts.model](num_classes=opts.num_classes, output_stride=opts.output_stride)
@@ -265,12 +265,13 @@ def main():
     metrics = StreamSegMetrics(opts.num_classes)
 
     # Set up optimizer
-    optimizer = torch.optim.SGD(params=[
-        {'params': model[1].backbone.parameters(), 'lr': 0.1 * opts.lr},
-        {'params': model[1].classifier.parameters(), 'lr': opts.lr},
-    ], lr=opts.lr, momentum=0.9, weight_decay=opts.weight_decay)
+    # optimizer = torch.optim.SGD(params=[
+    #    {'params': model[1].backbone.parameters(), 'lr': 0.1 * opts.lr},
+    #    {'params': model[1].classifier.parameters(), 'lr': opts.lr},
+    #  ], lr=opts.lr, momentum=0.9, weight_decay=opts.weight_decay)
     # optimizer = torch.optim.SGD(params=model.parameters(), lr=opts.lr, momentum=0.9, weight_decay=opts.weight_decay)
     # torch.optim.lr_scheduler.StepLR(optimizer, step_size=opts.lr_decay_step, gamma=opts.lr_decay_factor)
+    optimizer = torch.optim.Adam(model[0].parameters(), lr=opts.lr)
     if opts.lr_policy == 'poly':
         scheduler = utils.PolyLR(optimizer, opts.total_itrs, power=0.9)
     elif opts.lr_policy == 'step':
@@ -336,7 +337,7 @@ def main():
     mapping_sequence = generate_label_mapping_by_frequency(visual_prompt, model, train_loader)
     label_mapping = partial(label_mapping_base, mapping_sequence=mapping_sequence)
 
-    while cur_itrs < total_itrs_for_200_epochs:  # Instead of training from stratch
+    while cur_itrs < total_itrs_for_75f_epochs:  # Instead of training from stratch
         # =====  Train  =====
         model.train()
         cur_epochs += 1
